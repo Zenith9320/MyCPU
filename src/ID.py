@@ -12,11 +12,12 @@ class Decoder(Module):
     @module.combinational
     def build(
         self, 
-        #icache_out: RegArray,
+        icache_out: RegArray,
         executor: Module,
     ):
         log("Decoder!")
         pc = self.pop_all_ports(True)
+        log("{}", pc)
         # do sth with icache(sram)
         # so that next tick you get the correct inst
         # decode it, and then call EX

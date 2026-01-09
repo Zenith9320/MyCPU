@@ -23,4 +23,5 @@ class FetcherImpl(Downstream):
     ):
         log("Fetcher!")
         pc_reg[0] <= pc_reg[0] + UInt(32)(4)
+        log("{}", pc_reg[0])
         decoder.async_called(pc = Bits(32)(0))

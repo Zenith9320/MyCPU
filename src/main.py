@@ -26,10 +26,10 @@ def build_cpu(depth_log):
     sys = SysBuilder(sys_name)
 
     with sys:
-        #dcache = SRAM(width = 32, depth = 1 << depth_log, init_file = None)
-        #dcache.name = "dcache"
-        #icache = SRAM(width = 32, depth = 1 << depth_log, init_file = None)
-        #icache.name = "icache"
+        dcache = SRAM(width = 32, depth = 1 << depth_log, init_file = None)
+        dcache.name = "dcache"
+        icache = SRAM(width = 32, depth = 1 << depth_log, init_file = None)
+        icache.name = "icache"
 
         reg_file = RegArray(Bits(32), 32)
 
@@ -51,7 +51,7 @@ def build_cpu(depth_log):
             memory_access = memory_access,
         )
         decoder.build(
-            #icache_out = icache.dout,
+            icache_out = icache.dout,
             executor = executor,
         )
         pc = fetcher.build()

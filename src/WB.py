@@ -14,5 +14,6 @@ class WriteBack(Module):
         self,
         reg_file: RegArray,
     ):
+        log("WriteBack!")
         index, data = self.pop_all_ports(True)
         reg_file[index] = data

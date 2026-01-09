@@ -1,0 +1,1 @@
+首先学习 assassyn.md 中的内容，了解 assassyn 语言的特性。

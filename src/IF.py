@@ -21,5 +21,6 @@ class FetcherImpl(Downstream):
         pc_reg: RegArray,
         decoder: Module,
     ):
+        log("Fetcher!")
         pc_reg[0] <= pc_reg[0] + UInt(32)(4)
-        decoder.async_called(pc_reg[0])
+        decoder.async_called(pc = Bits(32)(0))

@@ -2,11 +2,14 @@ from assassyn.frontend import *
 
 class Executor(Module):
     def __init__(self):
-        super().__init__()
+        super().__init__(
+            ports={}
+        )
 
     @module.combinational
     def build(
         self,
         memory_access: Module
     ):
+        log("Executor!")
         memory_access.async_called()

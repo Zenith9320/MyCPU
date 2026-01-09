@@ -1,7 +1,9 @@
 # NOTE: This script should be sourced by ZSH! O.w. the directory behaviors will be wrong!
 
 # Use the repository path to set the PYTHONPATH and ASSASSYN_HOME
-REPO_PATH=`git rev-parse --show-toplevel`
+# REPO_PATH=`git rev-parse --show-toplevel`
+
+export REPO_PATH="/home/istina/assassyn"
 
 ENV_JSON=""
 

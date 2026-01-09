@@ -7,18 +7,12 @@ class Decoder(Module):
                 "pc": Port(Bits(32)),
             }
         )
-        self.name = "Decoder"
     
     @module.combinational
     def build(
         self, 
-        icache_out: RegArray,
         executor: Module,
     ):
         log("Decoder!")
         pc = self.pop_all_ports(True)
-        log("{}", pc)
-        # do sth with icache(sram)
-        # so that next tick you get the correct inst
-        # decode it, and then call EX
-        executor.async_called()
+        executor.async_called(rs1 = Bits(32)(0), rs2 = Bits(32)(0), imm = Bits(32)(0))

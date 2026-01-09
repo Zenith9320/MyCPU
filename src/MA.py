@@ -3,7 +3,9 @@ from assassyn.frontend import *
 class MemoryAcess(Module):
     def __init__(self):
         super().__init__(
-            ports={}
+            ports={
+                "alu_result": Port(Bits(32)),
+            }
         )
 
     @module.combinational
@@ -12,4 +14,5 @@ class MemoryAcess(Module):
         write_back: Module
     ):
         log("MemoryAcess!")
-        write_back.async_called()
+        alu_result = self.pop_all_ports(True)
+        write_back.async_called(index = Bits(5)(0), data = Bits(32)(0))

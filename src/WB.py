@@ -14,6 +14,10 @@ class WriteBack(Module):
         self,
         reg_file: RegArray,
     ):
-        log("WriteBack!")
         index, data = self.pop_all_ports(True)
-        reg_file[index] = data
+        log(f"WB: Write data {data} to reg[{index}]")
+        wb_bypass_value = data
+        with Condition(index != Bits(5)(0)):
+            reg_file[index] = data
+        
+        return index, wb_bypass_value

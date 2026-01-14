@@ -10,6 +10,7 @@ from ID import Decoder
 from EX import Executor
 from MA import MemoryAcess
 from WB import WriteBack
+from bypass import Bypass
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
@@ -78,6 +79,7 @@ def build_cpu(depth_log):
         executor = Executor()
         memory_access = MemoryAcess()
         write_back = WriteBack()
+        bypass = Bypass()
 
         write_back.build(reg_file)
         memory_access.build(write_back)

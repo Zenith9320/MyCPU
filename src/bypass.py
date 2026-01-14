@@ -1,7 +1,7 @@
 from assassyn.frontend import *
 from utils import *
 
-class Bypass(Module):
+class Bypass(Downstream):
     def __init__(self):
         super().__init__()
     

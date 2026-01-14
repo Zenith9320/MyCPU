@@ -100,6 +100,8 @@ ExCtrlSignals = Record(
     mem_sign = Bits(2),
     rd = Bits(5),
     is_halt = Bits(1),
+    rs1_data = Bits(32),
+    rs2_data = Bits(32),
 )
 
 # bypass 阶段

@@ -15,6 +15,14 @@ OP_LUI = Bits(7)(0b0110111)
 OP_AUIPC = Bits(7)(0b0010111)
 OP_SYSTEM = Bits(7)(0b1110011)
 
+class ImmType:
+    R = Bits(6)(0b000001)
+    I = Bits(6)(0b000010)
+    S = Bits(6)(0b000100)
+    B = Bits(6)(0b001000)
+    U = Bits(6)(0b010000)
+    J = Bits(6)(0b100000)
+
 # ex 阶段
 
 class ALUOp:
@@ -110,5 +118,5 @@ class Rs2Type:
 
 # writeback 阶段
 class IF_WB:
-    YES = 1
-    No = 0
+    YES = Bits(2)(0b01)
+    No = Bits(2)(0b10)

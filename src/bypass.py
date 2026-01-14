@@ -1,5 +1,5 @@
 from assassyn.frontend import *
-from utils import *
+from utils import Rs1Type, Rs2Type
 
 class Bypass(Downstream):
     def __init__(self):

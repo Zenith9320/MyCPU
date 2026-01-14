@@ -69,7 +69,7 @@ def build_cpu(depth_log):
 
     with sys:
         cache = SRAM(width=32, depth=1 << depth_log, init_file=ram_path)
-        cache.name = "dcache"
+        cache.name = "cache"
 
         reg_file = RegArray(Bits(32), 32)
 

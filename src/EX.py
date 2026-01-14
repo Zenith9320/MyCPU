@@ -29,19 +29,19 @@ class Executor(Module):
             rs2, imm, Bits(32)(4)
         )
 
-        op1_signed = alu_op1.bitcase(Int(32))
-        op2_signed = alu_op2.bitcase(Int(32))
+        op1_signed = alu_op1.bitcast(Int(32))
+        op2_signed = alu_op2.bitcast(Int(32))
 
-        add_res = op1_signed + op2_signed.bitcase(Int(32))
-        sub_res = op1_signed - op2_signed.bitcase(Int(32))
+        add_res = op1_signed + op2_signed.bitcast(Int(32))
+        sub_res = op1_signed - op2_signed.bitcast(Int(32))
         and_res = alu_op1 & alu_op2
         or_res = alu_op1 | alu_op2
         xor_res = alu_op1 ^ alu_op2
         sll_res = alu_op1 << alu_op2[0:4]
         srl_res = alu_op1 >> alu_op2[0:4]
-        sra_res = (op1_signed >> alu_op2[0:4]).bitcase(Bits(32))
-        slt_res = (op1_signed < op2_signed).bitcase(Bits(32))
-        sltu_res = (alu_op1 < alu_op2).bitcase(Bits(32))
+        sra_res = (op1_signed >> alu_op2[0:4]).bitcast(Bits(32))
+        slt_res = (op1_signed < op2_signed).bitcast(Bits(32))
+        sltu_res = (alu_op1 < alu_op2).bitcast(Bits(32))
 
         alu_res = ctrl.alu_op.select1hot(
             add_res,
@@ -62,9 +62,9 @@ class Executor(Module):
         is_jal = ctrl.branch_type == BranchType.JAL
         target_base = is_jalr.select(rs1, pc)
 
-        imm_signed = imm.bitcase(Int(32))
-        target_base_signed = target_base.bitcase(Int(32))
-        raw_calc_target = (target_base_signed + imm_signed).bitcase(Bits(32))
+        imm_signed = imm.bitcast(Int(32))
+        target_base_signed = target_base.bitcast(Int(32))
+        raw_calc_target = (target_base_signed + imm_signed).bitcast(Bits(32))
         calc_target = is_jalr.select(
             concat(raw_calc_target[0:31], Bits(1)(0)),
             raw_calc_target
@@ -101,7 +101,7 @@ class Executor(Module):
             is_branch.select(
                 is_taken.select(
                     calc_target,
-                    pc.bitcase(UInt(32)) + Bits(32)(4)
+                    pc.bitcast(UInt(32)) + Bits(32)(4)
                 ),
                 ctrl.predicted_next_pc
             )

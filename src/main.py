@@ -64,14 +64,11 @@ def build_cpu(depth_log):
     sys_name = "rv32i_cpu"
     sys = SysBuilder(sys_name)
 
-    data_path = os.path.join(workspace, f"workload.data")
-    ins_path = os.path.join(workspace, f"workload.exe")
+    ram_path = os.path.join(workspace, f"workload.data")
 
     with sys:
-        dcache = SRAM(width=32, depth=1 << depth_log, init_file=data_path)
-        dcache.name = "dcache"
-        icache = SRAM(width=32, depth=1 << depth_log, init_file=ins_path)
-        icache.name = "icache"
+        cache = SRAM(width=32, depth=1 << depth_log, init_file=ram_path)
+        cache.name = "dcache"
 
         reg_file = RegArray(Bits(32), 32)
 

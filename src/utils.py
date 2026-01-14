@@ -107,3 +107,8 @@ class Rs2Type:
     EX = Bits(4)(0b0010)
     MEM = Bits(4)(0b0100)
     WB = Bits(4)(0b1000)
+
+# writeback 阶段
+class IF_WB:
+    YES = 1
+    No = 0

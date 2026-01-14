@@ -119,4 +119,4 @@ class Rs2Type:
 # writeback 阶段
 class IF_WB:
     YES = Bits(2)(0b01)
-    No = Bits(2)(0b10)
+    NO = Bits(2)(0b10)

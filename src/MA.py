@@ -47,3 +47,5 @@ class MemoryAcess(Module):
 
 
         write_back.async_called(index = Bits(5)(0), data = Bits(32)(0))
+
+        return rd, data

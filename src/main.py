@@ -11,6 +11,7 @@ from EX import Executor
 from MA import MemoryAcess
 from WB import WriteBack
 from bypass import Bypass
+from memory_user import MemoryUser
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
@@ -73,6 +74,8 @@ def build_cpu(depth_log):
 
         reg_file = RegArray(Bits(32), 32)
 
+        branch_target = RegArray(Bits(32), 1)
+
         driver = Driver()
         fetcher = Fetcher()
         decoder = Decoder()
@@ -80,13 +83,52 @@ def build_cpu(depth_log):
         memory_access = MemoryAcess()
         write_back = WriteBack()
         bypass = Bypass()
+        memory_user = MemoryUser()
 
-        write_back.build(reg_file)
-        memory_access.build(write_back)
-        executor.build(memory_access)
-        decoder.build(executor)
-        fetcher.build(decoder)
-        driver.build(fetcher)
+        wb_rd, wb_bypass_data = write_back.build(reg_file = reg_file)
+
+        mem_rd, mem_bypass_data = memory_access.build(
+            write_back = write_back, sram_dout = cache.dout
+        )
+
+        ex_rd, ex_bypass_data, ex_is_load, ex_is_store, ex_width, ex_rs2 = executor.build(
+            memory_access = memory_access,
+            branch_target = branch_target
+        )
+
+        # 线还没接好
+        rs1, rs2 = decoder.build(
+            executor = executor,
+        )
+
+        rs1_sel, rs2_sel, is_stall = bypass.build(
+            rs1_addr = rs1,
+            rs2_addr = rs2,
+            ex_dest_addr = ex_rd,
+            ex_is_load = ex_is_load,
+            ex_is_store = ex_is_store,
+            mem_dest_addr = mem_rd,
+            wb_dest_addr = wb_rd,
+        )
+
+        # 线还没接好
+        fetcher.build(
+            decoder = decoder
+        )
+
+        memory_user.build(
+            if_addr = None, # todo: fetcher 阶段的 pc
+            mem_addr = ex_bypass_data, # alu_res, 这里也是旁路传来的内存地址
+            re = ex_is_load,
+            we = ex_is_store,
+            wdata = ex_rs2,
+            width = ex_width,
+            sram = cache,
+        )
+
+        driver.build(
+            fetcher = fetcher
+        )
     
     return sys
 

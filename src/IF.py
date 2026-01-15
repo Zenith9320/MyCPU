@@ -7,11 +7,11 @@ class Fetcher(Module):
     
     @module.combinational
     def build(self):
-        pc_reg = RegArray(UInt(32), 1, initializer=[0])
-        last_pc_reg = RegArray(UInt(32), 1, initializer=[0])
+        pc_reg = RegArray(Bits(32), 1, initializer=[0])
+        last_pc_reg = RegArray(Bits(32), 1, initializer=[0])
         return pc_reg, last_pc_reg
 
-class FetcherImpl(DownStream):
+class FetcherImpl(Downstream):
     def __init__(self):
         super().__init__()
 

@@ -119,8 +119,8 @@ def build_cpu(depth_log):
         memory_user.build(
             if_addr = None, # todo: fetcher 阶段的 pc
             mem_addr = ex_bypass_data, # alu_res, 这里也是旁路传来的内存地址
-            re = ex_is_load,
-            we = ex_is_store,
+            ex_is_load = ex_is_load,
+            ex_is_store = ex_is_store,
             wdata = ex_rs2,
             width = ex_width,
             sram = cache,

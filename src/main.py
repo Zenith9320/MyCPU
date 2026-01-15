@@ -87,7 +87,7 @@ def build_cpu(depth_log):
 
         wb_rd, wb_bypass_data = write_back.build(reg_file = reg_file)
 
-        mem_rd, mem_bypass_data = memory_access.build(
+        mem_rd, mem_bypass_data, mem_is_store = memory_access.build(
             write_back = write_back, sram_dout = cache.dout
         )
 
@@ -108,6 +108,7 @@ def build_cpu(depth_log):
             ex_is_load = ex_is_load,
             ex_is_store = ex_is_store,
             mem_dest_addr = mem_rd,
+            mem_is_store = mem_is_store,
             wb_dest_addr = wb_rd,
         )
 

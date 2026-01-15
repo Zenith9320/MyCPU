@@ -7,11 +7,11 @@ class Fetcher(Module):
     
     @module.combinational
     def build(self):
-        pc_reg = RegArray(UInt(32), 1, initializer=[0])
-        last_pc_reg = RegArray(UInt(32), 1, initializer=[0])
+        pc_reg = RegArray(Bits(32), 1, initializer=[0])
+        last_pc_reg = RegArray(Bits(32), 1, initializer=[0])
         return pc_reg, last_pc_reg
 
-class Fetcher(DownStream):
+class FetcherImpl(Downstream):
     def __init__(self):
         super().__init__()
 
@@ -29,19 +29,25 @@ class Fetcher(DownStream):
         with Condition(valid_is_stall == Bits(1)(1)):
             log("Stall in IF")
         
-        if valid_is_stall == True:
-            current_pc_addr = last_pc_reg[0]
-        else:
-            current_pc_addr = pc_reg[0]
-        
-        #如果EX或者MA阶段得到了跳转指令的目标位置，就需要flush
+        current_pc_addr = (valid_is_stall == Bits(1)(1)).select(last_pc_reg[0], pc_reg[0])
+
+        #如果EX或者MA阶段得到了跳转指令的目标位置，就需要flush        
         branch_target = branch_target_reg[0]
-        if_flush = (branch_target != Bits(32)(0))
-        
-        if if_flush == True:
-            current_pc_addr = branch_target
-            log("IF: Flush to 0x{:x}", current_pc_addr)
-        
+        current_pc_addr = (branch_target != Bits(32)(0)).select(branch_target, current_pc_addr)
+        with Condition(branch_target != Bits(32)(0)):
+            log("IF: Flush to 0x{:x}", branch_target)
+
+        next_pc_addr = valid_is_stall.select(current_pc_addr, (current_pc_addr.bitcast(UInt(32)) + UInt(32)(4)).bitcast(Bits(32)))
+
+        pc_reg[0] <= next_pc_addr
+        last_pc_reg[0] <= current_pc_addr
+
+        decoder.async_called(
+            pc = current_pc_addr,
+            next_pc = next_pc_addr,
+            stall = valid_is_stall,
+        )
+
         
 
 

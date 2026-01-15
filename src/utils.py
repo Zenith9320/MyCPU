@@ -15,6 +15,14 @@ OP_LUI = Bits(7)(0b0110111)
 OP_AUIPC = Bits(7)(0b0010111)
 OP_SYSTEM = Bits(7)(0b1110011)
 
+class ImmType:
+    R = Bits(6)(0b000001)
+    I = Bits(6)(0b000010)
+    S = Bits(6)(0b000100)
+    B = Bits(6)(0b001000)
+    U = Bits(6)(0b010000)
+    J = Bits(6)(0b100000)
+
 # ex 阶段
 
 class ALUOp:
@@ -92,6 +100,8 @@ ExCtrlSignals = Record(
     mem_sign = Bits(2),
     rd = Bits(5),
     is_halt = Bits(1),
+    rs1_data = Bits(32),
+    rs2_data = Bits(32),
 )
 
 # bypass 阶段
@@ -107,3 +117,8 @@ class Rs2Type:
     EX = Bits(4)(0b0010)
     MEM = Bits(4)(0b0100)
     WB = Bits(4)(0b1000)
+
+# writeback 阶段
+class IF_WB:
+    YES = Bits(2)(0b01)
+    NO = Bits(2)(0b10)

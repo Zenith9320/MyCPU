@@ -5,13 +5,13 @@ from assassyn.frontend import *
 from assassyn.backend import elaborate, config
 from assassyn import utils
 
-from IF import Fetcher
-from ID import Decoder
-from EX import Executor
-from MA import MemoryAcess
-from WB import WriteBack
-from bypass import Bypass
-from memory_user import MemoryUser
+from .IF import Fetcher, FetcherImpl
+from .ID import Decoder, DecoderImpl
+from .EX import Executor
+from .MA import MemoryAcess
+from .WB import WriteBack
+from .bypass import Bypass
+from .memory_user import MemoryUser
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
@@ -78,7 +78,9 @@ def build_cpu(depth_log):
 
         driver = Driver()
         fetcher = Fetcher()
+        fetcher_impl = FetcherImpl()
         decoder = Decoder()
+        decoder_impl = DecoderImpl()
         executor = Executor()
         memory_access = MemoryAcess()
         write_back = WriteBack()
@@ -97,8 +99,9 @@ def build_cpu(depth_log):
         )
 
         # 线还没接好
-        rs1, rs2 = decoder.build(
-            executor = executor,
+        pre_ctrl, rs1, rs2 = decoder.build(
+            icache_dout=cache.dout,
+            reg_file=reg_file,
         )
 
         rs1_sel, rs2_sel, is_stall = bypass.build(
@@ -112,13 +115,30 @@ def build_cpu(depth_log):
             wb_dest_addr = wb_rd,
         )
 
+        decoder_impl.build(
+            ctrl = pre_ctrl,
+            executor = executor,
+            rs1_ex_type = rs1_sel,
+            rs2_ex_type = rs2_sel,
+            if_stall = is_stall,
+            ex_bypass = ex_bypass_data,
+            mem_bypass = mem_bypass_data,
+            wb_bypass = wb_bypass_data,
+            branch_target_reg = branch_target,
+        )
+
         # 线还没接好
-        fetcher.build(
-            decoder = decoder
+        pc_reg, last_pc_reg = fetcher.build()
+        if_addr = fetcher_impl.build(
+            pc_reg = pc_reg,
+            last_pc_reg = last_pc_reg,
+            decoder = decoder,
+            is_stall = is_stall,
+            branch_target_reg = branch_target,
         )
 
         memory_user.build(
-            if_addr = None, # todo: fetcher 阶段的 pc
+            if_addr = if_addr, # fetcher 阶段的 pc
             mem_addr = ex_bypass_data, # alu_res, 这里也是旁路传来的内存地址
             ex_is_load = ex_is_load,
             ex_is_store = ex_is_store,

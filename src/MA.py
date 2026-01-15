@@ -1,5 +1,5 @@
 from assassyn.frontend import *
-from utils import *
+from .utils import *
 
 class MemoryAcess(Module):
     def __init__(self):

@@ -1,5 +1,5 @@
 from assassyn.frontend import *
-from utils import BranchType, ExCtrlSignals,MemOp, MemCtrlSignals, WbCtrlSignals
+from .utils import BranchType, ExCtrlSignals,MemOp, MemCtrlSignals, WbCtrlSignals
 
 class Executor(Module):
     def __init__(self):

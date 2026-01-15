@@ -1,5 +1,4 @@
 from assassyn.frontend import *
-from enum import Enum
 
 # opcode 常量
 # decode 阶段可以直接使用

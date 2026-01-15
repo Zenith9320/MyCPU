@@ -20,5 +20,7 @@ class WriteBack(Module):
         wb_bypass_value = data
         with Condition(index != Bits(5)(0)):
             reg_file[index] = data
-        
+        with Condition(ctrl.is_halt == Bits(1)(1)):
+            finish()
+
         return index, wb_bypass_value

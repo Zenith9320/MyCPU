@@ -16,6 +16,41 @@ from .memory_user import MemoryUser
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
 
+def convert_format(input_file, output_file):
+    data = {}
+    current_addr = None
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('@'):
+                current_addr = int(line[1:], 16)
+            else:
+                if current_addr is not None:
+                    bytes_data = [int(x, 16) for x in line.split()]
+                    for i, byte in enumerate(bytes_data):
+                        data[current_addr + i] = byte
+                    current_addr += len(bytes_data)
+
+    # Now group into 32-bit words, assuming little-endian
+    words = {}
+    for addr in sorted(data.keys()):
+        word_addr = addr // 4
+        offset = addr % 4
+        if word_addr not in words:
+            words[word_addr] = [0] * 4
+        words[word_addr][offset] = data[addr]
+
+    # Convert to big-endian hex
+    with open(output_file, 'w') as f:
+        for word_addr in sorted(words.keys()):
+            word_bytes = words[word_addr]
+            word_hex = ''.join(f'{b:02x}' for b in reversed(word_bytes))  # big-endian
+            addr_hex = f'{word_addr:08x}'
+            f.write(f'@{addr_hex}\n')
+            f.write(f'{word_hex}\n')
+
 def load_test_case(case_name, source_subdir="workloads"):
 
     current_file_path = os.path.abspath(__file__)

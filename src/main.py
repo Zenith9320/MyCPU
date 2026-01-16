@@ -16,6 +16,23 @@ from .memory_user import MemoryUser
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
 
+def init_memory(source_file):
+    mem = {}
+    with open(source_file, 'r') as f:
+        lines = f.readlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if line.startswith('@'):
+                addr = int(line[1:], 16)
+                i += 1
+                if i < len(lines):
+                    data_line = lines[i].strip()
+                    data = int(data_line, 16)
+                    mem[addr] = data
+            i += 1
+    return mem
+
 def convert_format(input_file, output_file):
     data = {}
     current_addr = None
@@ -73,8 +90,30 @@ def load_test_case(case_name, source_subdir="workloads"):
     dst_exe = os.path.join(workspace_dir, f"workload.exe")
 
     if os.path.exists(src_exe):
-        shutil.copy(src_exe, dst_exe)
-        print(f"  -> Copied Instruction: {case_name}.exe ==> workload.exe")
+        # Parse workload.exe
+        mem = {}
+        with open(src_exe, 'r') as f:
+            addr = 0
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('//'):
+                    data_str = line.split()[0]  # take first part before //
+                    data = int(data_str, 16)
+                    mem[addr] = data
+                    addr += 1  # word address increment
+
+        # Load converted.hex data
+        init_data = init_memory('converted.hex')
+        mem.update(init_data)
+
+        # Write merged data to dst_exe
+        with open(dst_exe, 'w') as f:
+            for addr in sorted(mem.keys()):
+                data = mem[addr]
+                f.write(f'@{addr:08x}\n')
+                f.write(f'{data:08x}\n')
+
+        print(f"  -> Merged instructions and data: {case_name}.exe + converted.hex ==> workload.exe")
     else:
         raise FileNotFoundError(f"Test case not found: {src_exe}")
 
@@ -180,7 +219,7 @@ def build_cpu(depth_log):
 
 if __name__ == "__main__":
 
-    load_test_case("test")
+    load_test_case("0to100")
 
     sys_builder = build_cpu(depth_log=16)
 

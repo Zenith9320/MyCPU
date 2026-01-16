@@ -92,11 +92,12 @@ class Decoder(Module):
 
         rd = if_wb.select(rd, Bits(5)(0))
 
-        ctrl = ExCtrlSignals.bundle(
+        ctrl = DecoderSignals.bundle(
             alu_op = alu_op,
             branch_type = branch_type,
             op1_type = op1_type,
             op2_type = op2_type,
+            cur_pc = pc_addr,
             predicted_pc = next_pc_addr,
             mem_op = mem_op,
             mem_width = mem_width,
@@ -104,7 +105,8 @@ class Decoder(Module):
             rd = rd,
             is_halt = is_halt_inst,
             rs1_data = rs1_data,
-            rs2_data = rs2_data
+            rs2_data = rs2_data,
+            imm = imm,
         )
 
         return ctrl, rs1, rs2
@@ -168,8 +170,8 @@ class DecoderImpl(Downstream):
 
         executor.async_called(
             ctrl = ctrl_signals,
-            pc = ctrl.pc,
-            rs1 = ctrl.rs1_data,
-            rs2 = ctrl.rs2_data,
+            pc = ctrl.cur_pc,
+            rs1 = rs1_data,
+            rs2 = rs2_data,
             imm = ctrl.imm,
         )

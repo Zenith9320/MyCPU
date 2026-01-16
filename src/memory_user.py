@@ -54,6 +54,8 @@ class MemoryUser(Downstream):
         sram_wdata = (sram.dout[0] & (~shifted_mask)) | (shifted_data & shifted_mask)
 
         sram_trunc_addr = (final_addr >> Bits(32)(2))[0:15]
+
+        log("MemoryUser: Addr=0x{:x} WData=0x{:x} WE={} RE={}", final_addr, sram_wdata, we, re)
         sram.build(
             addr = sram_trunc_addr,
             wdata = sram_wdata,

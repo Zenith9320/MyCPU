@@ -82,7 +82,7 @@ class Decoder(Module):
                 branch_type = inst_entry[-2].bitcast(Bits(9))
                 mem_op = inst_entry[7].bitcast(Bits(3))
                 mem_width = inst_entry[8].bitcast(Bits(3))
-                mem_sign = inst_entry[9].bitcast(Bits(2))
+                mem_sign = inst_entry[9].bitcast(Bits(1))
                 if_wb = inst_entry[-3].bitcast(Bits(2))
                 imm = imm_type.select1hot(Bits(32)(0), imm_i, imm_s, imm_b, imm_u, imm_j)
                 break
@@ -90,10 +90,9 @@ class Decoder(Module):
         rs1_data = reg_file[rs1]
         rs2_data = reg_file[rs2]
 
-        rd = if_wb.select1hot(
-            rd, 
-            Bits(5)(0)
-        )
+        rd2 = Bits(5)(0)
+        with Condition(if_wb == IF_WB.YES):
+            rd2 = rd
 
         ctrl = DecoderSignals.bundle(
             alu_op = alu_op,
@@ -105,7 +104,7 @@ class Decoder(Module):
             mem_op = mem_op,
             mem_width = mem_width,
             mem_sign = mem_sign,
-            rd = rd,
+            rd = rd2,
             is_halt = is_halt_inst,
             rs1_data = rs1_data,
             rs2_data = rs2_data,

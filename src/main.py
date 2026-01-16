@@ -34,24 +34,20 @@ def load_test_case(case_name, source_subdir="workloads"):
     os.makedirs(workspace_dir)
 
     src_exe = os.path.join(source_dir, f"{case_name}.exe")
-    src_data = os.path.join(source_dir, f"{case_name}.data")
 
-    dst_ins = os.path.join(workspace_dir, f"workload.exe")
-    dst_mem = os.path.join(workspace_dir, f"workload.data")
+    dst_exe = os.path.join(workspace_dir, f"workload.exe")
+    # dst_mem = os.path.join(workspace_dir, f"workload.data")
+
+    print(f"!!! SRC: {src_exe}, DST: {dst_exe}")
 
     if os.path.exists(src_exe):
-        shutil.copy(src_exe, dst_ins)
+        shutil.copy(src_exe, dst_exe)
         print(f"  -> Copied Instruction: {case_name}.exe ==> workload.exe")
     else:
         raise FileNotFoundError(f"Test case not found: {src_exe}")
 
-    if os.path.exists(src_data):
-        shutil.copy(src_data, dst_mem)
-        print(f"  -> Copied Memory Data: {case_name}.data ==> workload.data")
-    else:
-        with open(dst_mem, "w") as f:
-            pass
-        print(f"  -> No .data found, created empty: workload.data")
+    # with open(dst_mem, "w") as f:
+    #    pass
 
 class Driver(Module):
     def __init__(self):
@@ -66,7 +62,8 @@ def build_cpu(depth_log):
     sys_name = "rv32i_cpu"
     sys = SysBuilder(sys_name)
 
-    ram_path = os.path.join(workspace, f"workload.data")
+    ram_path = os.path.join(workspace, f"workload.exe")
+    print("!!! RAM Path: ", ram_path)
 
     with sys:
         cache = SRAM(width=32, depth=1 << depth_log, init_file=ram_path)
@@ -98,7 +95,6 @@ def build_cpu(depth_log):
             branch_target = branch_target
         )
 
-        # 线还没接好
         pre_ctrl, rs1, rs2 = decoder.build(
             icache_dout=cache.dout,
             reg_file=reg_file,
@@ -127,7 +123,6 @@ def build_cpu(depth_log):
             branch_target_reg = branch_target,
         )
 
-        # 线还没接好
         pc_reg, last_pc_reg = fetcher.build()
         if_addr = fetcher_impl.build(
             pc_reg = pc_reg,

@@ -90,7 +90,7 @@ def build_cpu(depth_log):
             write_back = write_back, sram_dout = cache.dout
         )
 
-        ex_rd, ex_bypass_data, ex_is_load, ex_is_store, ex_width, ex_rs2 = executor.build(
+        ex_rd, ex_bypass_data, ex_is_store, ex_is_load, ex_width, ex_rs2 = executor.build(
             memory_access = memory_access,
             branch_target = branch_target
         )
@@ -151,7 +151,7 @@ def build_cpu(depth_log):
 
 if __name__ == "__main__":
 
-    load_test_case("0to100")
+    load_test_case("array_test1")
 
     sys_builder = build_cpu(depth_log=16)
 

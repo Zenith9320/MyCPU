@@ -29,6 +29,8 @@ class Executor(Module):
             rs2, imm, Bits(32)(4)
         )
 
+        log("op1_type={}, op2_type={}, alu_op1=0x{:x}, alu_op2=0x{:x}", ctrl.op1_type, ctrl.op2_type, alu_op1, alu_op2)
+
         op1_signed = alu_op1.bitcast(Int(32))
         op2_signed = alu_op2.bitcast(Int(32))
 
@@ -57,6 +59,8 @@ class Executor(Module):
             alu_op2,
             alu_op2,
         )
+
+        log("ALU Result: {}", alu_res)
     
         # jal 和 jalr 计算跳转地址
         is_jalr = ctrl.branch_type == BranchType.JALR
@@ -139,6 +143,9 @@ class Executor(Module):
 
         is_store = mem_opcode == MemOp.STORE
         is_load = mem_opcode == MemOp.LOAD
+
+        log("Memory Access: is_load={}, is_store={}, mem_width={}", is_load, is_store, ctrl.mem_width)
+
         mem_width = ctrl.mem_width
 
         return rd, alu_res, is_store, is_load, mem_width, rs2

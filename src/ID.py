@@ -82,14 +82,20 @@ class Decoder(Module):
             mem_width |= match.select(inst_entry[8], Bits(3)(0))
             mem_sign |= match.select(inst_entry[9], Bits(1)(0))
             if_wb |= match.select(inst_entry[-3], Bits(2)(0))
+
+        with Condition(imm_type == Bits(6)(0)):
+            log("ID: Unknown instruction 0x{:x} at PC=0x{:x}, treat as NOP", instruction, pc_addr)
+            finish()
             
         imm = imm_type.select1hot(Bits(32)(0), imm_i, imm_s, imm_b, imm_u, imm_j)
         rs1_data = reg_file[rs1]
         rs2_data = reg_file[rs2]
 
-        rd2 = Bits(5)(0)
-        with Condition(if_wb == IF_WB.YES):
-            rd2 = rd
+        log("ID: rs1=x{}, rs1_data=0x{:x}, rs2=x{}, rs2_data=0x{:x}, if_wb={}", rs1, rs1_data, rs2, rs2_data, if_wb)
+
+        rd2 = (if_wb == IF_WB.YES).select(rd, Bits(5)(0))
+        
+        log("rd={}", rd2)
 
         ctrl = DecoderSignals.bundle(
             alu_op = alu_op,
@@ -151,6 +157,8 @@ class DecoderImpl(Downstream):
         rs2_data = rs2_ex_type.select1hot(
             ctrl.rs2_data, fwd_from_ex_to_mem, fwd_from_mem_to_wb, fwd_after_wb
         )
+
+        log("DecoderImpl: rs_ex_type={}, rs1_data=0x{:x}, rs_2_ex_type={}, rs2_data=0x{:x}, rd={}", rs1_ex_type, rs1_data, rs2_ex_type, rs2_data, rd)
 
         ctrl_signals = ExCtrlSignals.bundle(
             alu_op = alu_op,

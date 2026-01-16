@@ -21,6 +21,11 @@ class MemoryAcess(Module):
         mem_width = ctrl.mem_width
         mem_sign = ctrl.mem_sign
 
+        with Condition(mem_op == MemOp.LOAD):
+            log("Memory Access: LOAD at Address=0x{:x}, Width={}, Sign={}", alu_result, mem_width, mem_sign)
+        with Condition(mem_op == MemOp.STORE):
+            log("Memory Access: STORE at Address=0x{:x}, Width={}, Sign={}", alu_result, mem_width, mem_sign)
+
         raw_data = sram_dout[0].bitcast(Bits(32))
 
         half_sel = alu_result[1:1].select(raw_data[16:31], raw_data[0:15])

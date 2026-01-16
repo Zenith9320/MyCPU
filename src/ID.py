@@ -90,7 +90,10 @@ class Decoder(Module):
         rs1_data = reg_file[rs1]
         rs2_data = reg_file[rs2]
 
-        rd = if_wb.select(rd, Bits(5)(0))
+        rd = if_wb.select1hot(
+            rd, 
+            Bits(5)(0)
+        )
 
         ctrl = DecoderSignals.bundle(
             alu_op = alu_op,

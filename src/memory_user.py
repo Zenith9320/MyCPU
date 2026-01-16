@@ -4,7 +4,7 @@ class MemoryUser(Downstream):
     def __init__(self):
         super().__init__()
     
-    @module.combinational
+    @downstream.combinational
     def build(
         self,
         if_addr: Value,
@@ -20,7 +20,7 @@ class MemoryUser(Downstream):
         ex_is_load_val = ex_is_load.optional(Bits(1)(0))
         ex_is_store_val = ex_is_store.optional(Bits(1)(0))
         wdata_val = wdata.optional(Bits(32)(0))
-        width_val = width.optional(Bits(2)(0))
+        width_val = width.optional(Bits(3)(1))
 
         need_write = RegArray(Bits(1), 1, initializer=[0])
         write_addr = RegArray(Bits(32), 1, initializer=[0])
@@ -31,7 +31,7 @@ class MemoryUser(Downstream):
         need_write[0] <= need_refresh.select(Bits(1)(1), Bits(1)(0))
         write_addr[0] <= need_refresh.select(mem_addr_val, Bits(32)(0))
         write_data[0] <= need_refresh.select(wdata_val, Bits(32)(0))
-        write_width[0] <= need_refresh.select(width_val, Bits(3)(0))
+        write_width[0] <= need_refresh.select(width_val, Bits(3)(1))
 
         we = need_write[0]
         re = ~we
@@ -40,7 +40,7 @@ class MemoryUser(Downstream):
         final_addr = is_from_ex.select(final_mem_addr, if_addr_val)
 
         final_wdata = we.select(write_data[0], Bits(32)(0))
-        final_width = we.select(write_width[0], Bits(32)(1))
+        final_width = we.select(write_width[0], Bits(3)(1))
         # 默认为 1 防止 select1hot 报错
 
         shamt = final_mem_addr[0:1].concat(Bits(3)(0)).bitcast(UInt(5))

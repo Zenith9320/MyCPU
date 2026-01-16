@@ -20,7 +20,7 @@ class Executor(Module):
         branch_target: RegArray
     ):
         ctrl, pc, rs1, rs2, imm = self.pop_all_ports(True)
-        log(f"Input: pc={pc}, rs1={rs1}, rs2={rs2}, imm={imm}")
+        log("Input: pc={}, rs1={}, rs2={}, imm={}", pc, rs1, rs2, imm)
 
         alu_op1 = ctrl.op1_type.select1hot(
             rs1, pc, Bits(32)(0)

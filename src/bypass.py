@@ -26,7 +26,15 @@ class Bypass(Downstream):
         mem_is_store_val = mem_is_store.optional(Bits(1)(0))
         wb_dest_addr_val = wb_dest_addr.optional(Bits(5)(0))
 
-        log("Bypass: rs1={rs1_addr_val}, rs2={rs2_addr_val}, ex_dest={ex_dest_addr_val}, ex_is_load={ex_is_load_val}, ex_is_store={ex_is_store_val}, mem_dest={mem_dest_addr_val}, wb_dest={wb_dest_addr_val}")
+        log("Bypass: rs1={}, rs2={}, ex_dest={}, ex_is_load={}, ex_is_store={}, mem_dest={}, wb_dest={}", 
+            rs1_addr_val,
+            rs2_addr_val,
+            ex_dest_addr_val,
+            ex_is_load_val,
+            ex_is_store_val,
+            mem_dest_addr_val,
+            wb_dest_addr_val
+        )
 
         rs1_is_zero = rs1_addr_val == Bits(5)(0)
         rs2_is_zero = rs2_addr_val == Bits(5)(0)
@@ -45,6 +53,10 @@ class Bypass(Downstream):
         rs2_mem_type = ((rs2_addr_val == mem_dest_addr_val) & (~rs2_is_zero)).select(Rs2Type.MEM, rs2_wb_type)
         rs2_ex_type = ((rs2_addr_val == ex_dest_addr_val) & (~rs2_is_zero)).select(Rs2Type.EX, rs2_mem_type)
 
-        log("Bypass Result: rs1_type={rs1_ex_type} rs2_type={rs2_ex_type} is_stall={is_stall}")
+        log("Bypass Result: rs1_type={} rs2_type={} is_stall={}",
+            rs1_ex_type,
+            rs2_ex_type,
+            is_stall
+        )
 
         return rs1_ex_type, rs2_ex_type, is_stall

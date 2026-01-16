@@ -158,6 +158,13 @@ if __name__ == "__main__":
     load_test_case("0to100")
 
     sys_builder = build_cpu(depth_log=16)
+
+    circ_path = os.path.join(workspace, f"circ.txt")
+    with open(circ_path, "w") as f:
+        print(sys_builder, file=f)
+
+    print(f"🚀 Compiling system: {sys_builder.name}...")
+    
     cfg = config(
         verilog=True,
         sim_threshold=10,

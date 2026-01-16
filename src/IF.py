@@ -52,10 +52,10 @@ class FetcherImpl(Downstream):
         decoder.async_called(
             pc = current_pc_addr,
             next_pc = next_pc_addr,
-            stall = valid_is_stall,
+            is_stall = valid_is_stall,
         )
 
-        
+        return current_pc_addr
 
 
 

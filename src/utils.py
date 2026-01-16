@@ -72,8 +72,8 @@ class MemWidth:
     WORD = Bits(3)(0b100)
 
 class MemSign:
-    SIGNED = Bits(2)(0b01)
-    UNSIGNED = Bits(2)(0b10)
+    SIGNED = Bits(1)(0b0)
+    UNSIGNED = Bits(1)(0b1)
 
 WbCtrlSignals = Record(
     rd = Bits(5),
@@ -83,7 +83,7 @@ WbCtrlSignals = Record(
 MemCtrlSignals = Record(
     mem_op = Bits(3),
     mem_width = Bits(3),
-    mem_sign = Bits(2),
+    mem_sign = Bits(1), # 0 for signed, 1 for unsigned
     rd = Bits(5),
     is_halt = Bits(1),
 )

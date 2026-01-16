@@ -1,5 +1,4 @@
 from assassyn.frontend import *
-from enum import Enum
 
 # opcode 常量
 # decode 阶段可以直接使用
@@ -102,6 +101,23 @@ ExCtrlSignals = Record(
     is_halt = Bits(1),
     rs1_data = Bits(32),
     rs2_data = Bits(32),
+)
+
+DecoderSignals = Record(
+    alu_op = Bits(12),
+    branch_type = Bits(9),
+    op1_type = Bits(3),
+    op2_type = Bits(3),
+    cur_pc = Bits(32),
+    predicted_pc = Bits(32),
+    mem_op = Bits(3),
+    mem_width = Bits(3),
+    mem_sign = Bits(2),
+    rd = Bits(5),
+    is_halt = Bits(1),
+    rs1_data = Bits(32),
+    rs2_data = Bits(32),
+    imm = Bits(32),
 )
 
 # bypass 阶段

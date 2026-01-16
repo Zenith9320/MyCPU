@@ -68,25 +68,22 @@ class Decoder(Module):
         imm = Bits(32)(0)
 
         for inst_entry in instruction_table:
-            if opcode == inst_entry[1]:
-                match = Bits(1)(1)
+            match = opcode == inst_entry[1]
             if inst_entry[2] is not None:
                 match &= funct3 == Bits(3)(inst_entry[2])
             if inst_entry[3] is not None:
                 match &= bit30 == Bits(1)(inst_entry[3])
-            if match == Bits(1)(1):
-                alu_op = inst_entry[4].bitcast(Bits(12))
-                imm_type = inst_entry[-1].bitcast(Bits(6))
-                op1_type = inst_entry[5].bitcast(Bits(3))
-                op2_type = inst_entry[6].bitcast(Bits(3))
-                branch_type = inst_entry[-2].bitcast(Bits(9))
-                mem_op = inst_entry[7].bitcast(Bits(3))
-                mem_width = inst_entry[8].bitcast(Bits(3))
-                mem_sign = inst_entry[9].bitcast(Bits(1))
-                if_wb = inst_entry[-3].bitcast(Bits(2))
-                imm = imm_type.select1hot(Bits(32)(0), imm_i, imm_s, imm_b, imm_u, imm_j)
-                break
-        
+            alu_op |= match.select(inst_entry[4].bitcast(Bits(12)), Bits(12)(0))
+            imm_type |= match.select(inst_entry[-1].bitcast(Bits(6)), Bits(6)(0))
+            op1_type |= match.select(inst_entry[5].bitcast(Bits(3)), Bits(3)(0))
+            op2_type |= match.select(inst_entry[6].bitcast(Bits(3)), Bits(3)(0))
+            branch_type |= match.select(inst_entry[-2].bitcast(Bits(9)), Bits(9)(0))
+            mem_op |= match.select(inst_entry[7].bitcast(Bits(3)), Bits(3)(0))
+            mem_width |= match.select(inst_entry[8].bitcast(Bits(3)), Bits(3)(0))
+            mem_sign |= match.select(inst_entry[9].bitcast(Bits(1)), Bits(1)(0))
+            if_wb |= match.select(inst_entry[-3].bitcast(Bits(2)), Bits(2)(0))
+            
+        imm = imm_type.select1hot(Bits(32)(0), imm_i, imm_s, imm_b, imm_u, imm_j)
         rs1_data = reg_file[rs1]
         rs2_data = reg_file[rs2]
 

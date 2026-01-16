@@ -1,5 +1,5 @@
 from assassyn.frontend import *
-from utils import BranchType, ExCtrlSignals,MemOp, MemCtrlSignals, WbCtrlSignals
+from .utils import BranchType, ExCtrlSignals,MemOp, MemCtrlSignals, WbCtrlSignals
 
 class Executor(Module):
     def __init__(self):
@@ -29,19 +29,19 @@ class Executor(Module):
             rs2, imm, Bits(32)(4)
         )
 
-        op1_signed = alu_op1.bitcase(Int(32))
-        op2_signed = alu_op2.bitcase(Int(32))
+        op1_signed = alu_op1.bitcast(Int(32))
+        op2_signed = alu_op2.bitcast(Int(32))
 
-        add_res = op1_signed + op2_signed.bitcase(Int(32))
-        sub_res = op1_signed - op2_signed.bitcase(Int(32))
+        add_res = (op1_signed + op2_signed).bitcast(Bits(32))
+        sub_res = (op1_signed - op2_signed).bitcast(Bits(32))
         and_res = alu_op1 & alu_op2
         or_res = alu_op1 | alu_op2
         xor_res = alu_op1 ^ alu_op2
         sll_res = alu_op1 << alu_op2[0:4]
         srl_res = alu_op1 >> alu_op2[0:4]
-        sra_res = (op1_signed >> alu_op2[0:4]).bitcase(Bits(32))
-        slt_res = (op1_signed < op2_signed).bitcase(Bits(32))
-        sltu_res = (alu_op1 < alu_op2).bitcase(Bits(32))
+        sra_res = (op1_signed >> alu_op2[0:4]).bitcast(Bits(32))
+        slt_res = (op1_signed < op2_signed).bitcast(Bits(32))
+        sltu_res = (alu_op1 < alu_op2).bitcast(Bits(32))
 
         alu_res = ctrl.alu_op.select1hot(
             add_res,
@@ -55,6 +55,7 @@ class Executor(Module):
             or_res,
             and_res,
             alu_op2,
+            alu_op2,
         )
     
         # jal 和 jalr 计算跳转地址
@@ -62,11 +63,11 @@ class Executor(Module):
         is_jal = ctrl.branch_type == BranchType.JAL
         target_base = is_jalr.select(rs1, pc)
 
-        imm_signed = imm.bitcase(Int(32))
-        target_base_signed = target_base.bitcase(Int(32))
-        raw_calc_target = (target_base_signed + imm_signed).bitcase(Bits(32))
+        imm_signed = imm.bitcast(Int(32))
+        target_base_signed = target_base.bitcast(Int(32))
+        raw_calc_target = (target_base_signed + imm_signed).bitcast(Bits(32))
         calc_target = is_jalr.select(
-            concat(raw_calc_target[0:31], Bits(1)(0)),
+            concat(raw_calc_target[1:31], Bits(1)(0)),
             raw_calc_target
         )
 
@@ -77,12 +78,12 @@ class Executor(Module):
         is_eq = alu_res == Bits(32)(0)
         is_lt = alu_res[0:0] == Bits(1)(1)
 
-        is_taken_eq = (ctrl.BranchType.BEQ == ctrl.branch_type) & is_eq
-        is_taken_ne = (ctrl.BranchType.BNE == ctrl.branch_type) & (~is_eq)
-        is_taken_lt = (ctrl.BranchType.BLT == ctrl.branch_type) & is_lt
-        is_taken_ge = (ctrl.BranchType.BGE == ctrl.branch_type) & (~is_lt)
-        is_taken_ltu = (ctrl.BranchType.BLTU == ctrl.branch_type) & is_lt
-        is_taken_geu = (ctrl.BranchType.BGEU == ctrl.branch_type) & (~is_lt)
+        is_taken_eq = (BranchType.BEQ == ctrl.branch_type) & is_eq
+        is_taken_ne = (BranchType.BNE == ctrl.branch_type) & (~is_eq)
+        is_taken_lt = (BranchType.BLT == ctrl.branch_type) & is_lt
+        is_taken_ge = (BranchType.BGE == ctrl.branch_type) & (~is_lt)
+        is_taken_ltu = (BranchType.BLTU == ctrl.branch_type) & is_lt
+        is_taken_geu = (BranchType.BGEU == ctrl.branch_type) & (~is_lt)
 
         is_taken = is_branch & (
             is_taken_eq |
@@ -101,13 +102,13 @@ class Executor(Module):
             is_branch.select(
                 is_taken.select(
                     calc_target,
-                    pc.bitcase(UInt(32)) + Bits(32)(4)
+                    (pc.bitcast(UInt(32)) + Bits(32)(4)).bitcast(Bits(32))
                 ),
-                ctrl.predicted_next_pc
+                ctrl.predicted_pc
             )
         )
 
-        branch_miss = next_pc != ctrl.predicted_next_pc
+        branch_miss = next_pc != ctrl.predicted_pc
         branch_target[0] = branch_miss.select(
             next_pc,
             Bits(32)(0)
@@ -127,7 +128,7 @@ class Executor(Module):
         )
 
         mem_ctrl = MemCtrlSignals.bundle(
-            mem_opcode = mem_opcode,
+            mem_op = mem_opcode,
             mem_width = ctrl.mem_width,
             mem_sign = ctrl.mem_sign,
             rd = rd,

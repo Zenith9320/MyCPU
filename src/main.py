@@ -123,13 +123,14 @@ def build_cpu(depth_log):
             branch_target_reg = branch_target,
         )
 
-        pc_reg, last_pc_reg = fetcher.build()
+        pc_reg, last_pc_reg, rubbish = fetcher.build()
         if_addr = fetcher_impl.build(
             pc_reg = pc_reg,
             last_pc_reg = last_pc_reg,
             decoder = decoder,
             is_stall = is_stall,
             branch_target_reg = branch_target,
+            rubbish=rubbish
         )
 
         memory_user.build(
@@ -162,9 +163,9 @@ if __name__ == "__main__":
     
     cfg = config(
         verilog=True,
-        sim_threshold=10,
+        sim_threshold=100000,
         resource_base="",
-        idle_threshold=10,
+        idle_threshold=100000,
     )
     simulator_path, verilog_path = elaborate(sys_builder, **cfg)
 

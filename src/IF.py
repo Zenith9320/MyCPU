@@ -9,8 +9,9 @@ class Fetcher(Module):
     def build(self):
         pc_reg = RegArray(Bits(32), 1, initializer=[0])
         last_pc_reg = RegArray(Bits(32), 1, initializer=[0])
+        pc_addr = pc_reg[0].bitcast(Bits(32))
         log("Fetcher: {}", pc_reg[0])
-        return pc_reg, last_pc_reg
+        return pc_reg, last_pc_reg, pc_addr
 
 class FetcherImpl(Downstream):
     def __init__(self):
@@ -24,8 +25,10 @@ class FetcherImpl(Downstream):
         decoder : Module,           #async_call的下一级模块
         is_stall : Value,           #决定是否保持当前状态的变量
         branch_target_reg : Array,  #存储可能存在的跳转指令的目标pc位置
+        rubbish: Value,              #占位用，无实际意义
     ):
         valid_is_stall = is_stall.optional(Bits(1)(0))
+        rubbish_val = rubbish.optional(Bits(32)(0))
 
         with Condition(valid_is_stall == Bits(1)(1)):
             log("Stall in IF")

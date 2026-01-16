@@ -83,10 +83,16 @@ class Decoder(Module):
             mem_sign |= match.select(inst_entry[9], Bits(1)(0))
             if_wb |= match.select(inst_entry[-3], Bits(2)(0))
 
-        with Condition(imm_type == Bits(6)(0)):
-            log("ID: Unknown instruction 0x{:x} at PC=0x{:x}, treat as NOP", instruction, pc_addr)
-            finish()
-            
+        # with Condition(imm_type == Bits(6)(0)):
+        #     log("ID: Unknown instruction 0x{:x} at PC=0x{:x}, treat as NOP", instruction, pc_addr)
+        #     finish()
+        
+        alu_op = (alu_op == Bits(12)(0)).select(ALUOp.NOP, alu_op)
+        op1_type = (op1_type == Bits(3)(0)).select(Op1Type.RS1, op1_type)
+        op2_type = (op2_type == Bits(3)(0)).select(Op2Type.RS2, op2_type)
+        imm_type = (imm_type == Bits(6)(0)).select(Bits(6)(1), imm_type)
+        mem_width = (mem_width == Bits(3)(0)).select(MemWidth.WORD, mem_width)
+
         imm = imm_type.select1hot(Bits(32)(0), imm_i, imm_s, imm_b, imm_u, imm_j)
         rs1_data = reg_file[rs1]
         rs2_data = reg_file[rs2]

@@ -4,3 +4,4 @@ src/.build_cache.json
 workspace
 tests/__pycache__
 tests/.build_cache.json
+workloads/testcases

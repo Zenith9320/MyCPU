@@ -82,6 +82,11 @@ def convert_to_hex_format(memory):
     
     返回: list of (address, word32)
     """
+    # 指令替换映射（停机指令转换）
+    INSTRUCTION_REPLACEMENTS = {
+        0x0ff00513: 0xfe000fa3,  # addi a0, zero, -1 -> c.sw zero, -8(sp)
+    }
+    
     # 找到最小和最大地址
     if not memory:
         return []
@@ -102,6 +107,11 @@ def convert_to_hex_format(memory):
             byte_addr = addr + i
             if byte_addr in memory:
                 word |= (memory[byte_addr] & 0xFF) << (i * 8)
+
+        # 应用指令替换
+        if word in INSTRUCTION_REPLACEMENTS:
+            word = INSTRUCTION_REPLACEMENTS[word]
+
         words.append((addr, word))
     
     return words
@@ -126,11 +136,7 @@ def main():
     input_file = sys.argv[1]
     
     # 默认输出文件名：将 .data 改为 .exe
-    if len(sys.argv) >= 3:
-        output_file = sys.argv[2]
-    else:
-        input_path = Path(input_file)
-        output_file = str(input_path.with_suffix('.exe'))
+    output_file = str('test.exe')
     
     # 解析输入文件
     print(f"读取输入文件: {input_file}")

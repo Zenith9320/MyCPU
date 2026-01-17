@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 from assassyn.frontend import *
 from assassyn.backend import elaborate, config
@@ -218,6 +219,10 @@ def build_cpu(depth_log):
     return sys
 
 if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+        input_file = sys.argv[1]
+        convert_format(input_file, 'converted.hex')
 
     load_test_case("0to100")
 

@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 from assassyn.frontend import *
 from assassyn.backend import elaborate, config
@@ -12,10 +13,98 @@ from .MA import MemoryAcess
 from .WB import WriteBack
 from .bypass import Bypass
 from .memory_user import MemoryUser
-from .debug import debug_log
+from .debug import debug_log, set_debug_mode
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
+
+def parse_verilog_hex(filepath):
+    data = {}
+    current_addr = None
+    current_bytes = []
+    
+    with open(filepath, 'r') as f:
+        for line in f:
+            line = line.strip()
+            
+            # 空行跳过
+            if not line:
+                continue
+            
+            # 地址标记 @xxxxxxxx
+            if line.startswith('@'):
+                # 保存之前的地址段
+                if current_addr is not None and current_bytes:
+                    data[current_addr] = current_bytes
+                
+                # 解析新地址
+                addr_str = line[1:]
+                current_addr = int(addr_str, 16)
+                current_bytes = []
+            else:
+                # 数据行：空格分隔的字节
+                bytes_list = line.split()
+                for b in bytes_list:
+                    current_bytes.append(int(b, 16))
+        
+        # 保存最后一个地址段
+        if current_addr is not None and current_bytes:
+            data[current_addr] = current_bytes
+    
+    return data
+
+
+def merge_to_flat_memory(data):
+    memory = {}
+    
+    for addr, bytes_list in data.items():
+        for i, byte_val in enumerate(bytes_list):
+            memory[addr + i] = byte_val
+    
+    return memory
+
+
+def convert_to_hex_format(memory):
+    # 指令替换映射（停机指令转换）
+    INSTRUCTION_REPLACEMENTS = {
+        0x0ff00513: 0xfe000fa3,  # addi a0, zero, -1 -> c.sw zero, -8(sp)
+    }
+    
+    # 找到最小和最大地址
+    if not memory:
+        return []
+    
+    min_addr = min(memory.keys())
+    max_addr = max(memory.keys())
+    
+    # 按字对齐（4字节）
+    min_addr = min_addr & ~0x3
+    max_addr = (max_addr + 3) & ~0x3
+    
+    # 生成32位字列表
+    words = []
+    for addr in range(min_addr, max_addr, 4):
+        # 小端序：低字节在低地址
+        word = 0
+        for i in range(4):
+            byte_addr = addr + i
+            if byte_addr in memory:
+                word |= (memory[byte_addr] & 0xFF) << (i * 8)
+
+        # 应用指令替换
+        if word in INSTRUCTION_REPLACEMENTS:
+            word = INSTRUCTION_REPLACEMENTS[word]
+
+        words.append((addr, word))
+    
+    return words
+
+
+def write_hex_format(output_path, words):
+    with open(output_path, 'w') as f:
+        for addr, word in words:
+            # 格式：xxxxxxxx // address: 0x...
+            f.write(f"{word:08x}\n")
 
 def load_test_case(case_name, source_subdir="workloads"):
 
@@ -34,7 +123,13 @@ def load_test_case(case_name, source_subdir="workloads"):
         shutil.rmtree(workspace_dir)
     os.makedirs(workspace_dir)
 
-    src_exe = os.path.join(source_dir, f"{case_name}.exe")
+    src_data = os.path.join(source_dir, f"testcases/{case_name}.data")
+    src_exe = os.path.join(source_dir, f"testcases/{case_name}.exe")
+
+    data = parse_verilog_hex(src_data)
+    flat_memory = merge_to_flat_memory(data)
+    words = convert_to_hex_format(flat_memory)
+    write_hex_format(src_exe, words)
 
     dst_exe = os.path.join(workspace_dir, f"workload.exe")
 
@@ -56,11 +151,11 @@ class Driver(Module):
 
 def build_cpu(depth_log):
     sys_name = "rv32i_cpu"
-    sys = SysBuilder(sys_name)
+    Sys = SysBuilder(sys_name)
 
     ram_path = os.path.join(workspace, f"workload.exe")
 
-    with sys:
+    with Sys:
         cache = SRAM(width=32, depth=1 << depth_log, init_file=ram_path)
         cache.name = "cache"
 
@@ -142,11 +237,17 @@ def build_cpu(depth_log):
             fetcher = fetcher
         )
     
-    return sys
+    return Sys
 
 if __name__ == "__main__":
 
-    load_test_case("test")
+    if (len(sys.argv) >= 3):
+        test_case = sys.argv[1]
+        set_debug_mode(sys.argv[2].lower() in ['true', '1', 'yes'])
+    else:
+        raise Exception("Usage: python main.py <test_case_name> <debug_mode(True/False)>")
+
+    load_test_case(test_case)
 
     sys_builder = build_cpu(depth_log=16)
 
@@ -154,13 +255,13 @@ if __name__ == "__main__":
     with open(circ_path, "w") as f:
         print(sys_builder, file=f)
 
-    print(f"🚀 Compiling system: {sys_builder.name}...")
+    print(f"Compiling system: {sys_builder.name}...")
     
     cfg = config(
         verilog=True,
-        sim_threshold=50000,
+        sim_threshold=5000000,
         resource_base="",
-        idle_threshold=50000,
+        idle_threshold=5000000,
     )
     simulator_path, verilog_path = elaborate(sys_builder, **cfg)
 
@@ -181,10 +282,10 @@ if __name__ == "__main__":
     with open(log_path, "w") as f:
         print(raw, file=f)
 
-    print("Running verilator...")
-    raw = utils.run_verilator(verilog_path)
-    log_path = os.path.join(workspace, f"verilalog_raw.log")
-    with open(log_path, "w") as f:
-        print(raw, file=f)
+    # print("Running verilator...")
+    # raw = utils.run_verilator(verilog_path)
+    # log_path = os.path.join(workspace, f"verilalog_raw.log")
+    # with open(log_path, "w") as f:
+    #     print(raw, file=f)
 
     print("Done.")

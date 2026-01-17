@@ -224,6 +224,8 @@ if __name__ == "__main__":
         input_file = sys.argv[1]
         case_name = sys.argv[2]
         convert_format(input_file, 'converted.hex')
+    elif len(sys.argv) > 1:
+        case_name = sys.argv[1]
     else:
         case_name = "invalid_argv"
 

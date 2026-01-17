@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 
 from assassyn.frontend import *
 from assassyn.backend import elaborate, config
@@ -13,61 +12,10 @@ from .MA import MemoryAcess
 from .WB import WriteBack
 from .bypass import Bypass
 from .memory_user import MemoryUser
+from .debug import debug_log
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 workspace = os.path.join(current_path, ".workspace")
-
-def init_memory(source_file):
-    mem = {}
-    with open(source_file, 'r') as f:
-        lines = f.readlines()
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
-            if line.startswith('@'):
-                addr = int(line[1:], 16)
-                i += 1
-                if i < len(lines):
-                    data_line = lines[i].strip()
-                    data = int(data_line, 16)
-                    mem[addr] = data
-            i += 1
-    return mem
-
-def convert_format(input_file, output_file):
-    data = {}
-    current_addr = None
-    with open(input_file, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            if line.startswith('@'):
-                current_addr = int(line[1:], 16)
-            else:
-                if current_addr is not None:
-                    bytes_data = [int(x, 16) for x in line.split()]
-                    for i, byte in enumerate(bytes_data):
-                        data[current_addr + i] = byte
-                    current_addr += len(bytes_data)
-
-    # Now group into 32-bit words, assuming little-endian
-    words = {}
-    for addr in sorted(data.keys()):
-        word_addr = addr // 4
-        offset = addr % 4
-        if word_addr not in words:
-            words[word_addr] = [0] * 4
-        words[word_addr][offset] = data[addr]
-
-    # Convert to big-endian hex
-    with open(output_file, 'w') as f:
-        for word_addr in sorted(words.keys()):
-            word_bytes = words[word_addr]
-            word_hex = ''.join(f'{b:02x}' for b in reversed(word_bytes))  # big-endian
-            addr_hex = f'{word_addr:08x}'
-            f.write(f'@{addr_hex}\n')
-            f.write(f'{word_hex}\n')
 
 def load_test_case(case_name, source_subdir="workloads"):
 
@@ -91,30 +39,8 @@ def load_test_case(case_name, source_subdir="workloads"):
     dst_exe = os.path.join(workspace_dir, f"workload.exe")
 
     if os.path.exists(src_exe):
-        # Parse workload.exe
-        mem = {}
-        with open(src_exe, 'r') as f:
-            addr = 0
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('//'):
-                    data_str = line.split()[0]  # take first part before //
-                    data = int(data_str, 16)
-                    mem[addr] = data
-                    addr += 1  # word address increment
-
-        # Load converted.hex data
-        init_data = init_memory('converted.hex')
-        mem.update(init_data)
-
-        # Write merged data to dst_exe
-        with open(dst_exe, 'w') as f:
-            for addr in sorted(mem.keys()):
-                data = mem[addr]
-                f.write(f'@{addr:08x}\n')
-                f.write(f'{data:08x}\n')
-
-        print(f"  -> Merged instructions and data: {case_name}.exe + converted.hex ==> workload.exe")
+        shutil.copy(src_exe, dst_exe)
+        print(f"  -> Copied Instruction: {case_name}.exe ==> workload.exe")
     else:
         raise FileNotFoundError(f"Test case not found: {src_exe}")
 
@@ -125,7 +51,7 @@ class Driver(Module):
     
     @module.combinational
     def build(self, fetcher: Module):
-        log("Driver!")
+        debug_log("Driver!")
         fetcher.async_called()
 
 def build_cpu(depth_log):
@@ -220,16 +146,7 @@ def build_cpu(depth_log):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 2:
-        input_file = sys.argv[1]
-        case_name = sys.argv[2]
-        convert_format(input_file, 'converted.hex')
-    elif len(sys.argv) > 1:
-        case_name = sys.argv[1]
-    else:
-        case_name = "invalid_argv"
-
-    load_test_case(case_name)
+    load_test_case("test")
 
     sys_builder = build_cpu(depth_log=16)
 

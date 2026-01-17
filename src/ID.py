@@ -1,5 +1,6 @@
 from assassyn.frontend import *
 from .instructions import *
+from .debug import debug_log
 
 # 从指令中提取立即数
 def get_imm(inst):
@@ -26,7 +27,7 @@ class Decoder(Module):
     
     @module.combinational
     def build(self, icache_dout: Array, reg_file: Array):
-        log("Decoder!")
+        debug_log("Decoder!")
         pc_addr, next_pc_addr, is_stall = self.pop_all_ports(False)
         icache_instruction = icache_dout[0].bitcast(Bits(32))
         last_inst_reg = RegArray(Bits(32), 1, initializer=[0])
@@ -39,12 +40,12 @@ class Decoder(Module):
         #第一条指令PC不是有效地址，输出是0，但是这不是合法RISC-V指令，需要转成NOP：addi x0, x0, 0
         instruction = (instruction == Bits(32)(0)).select(Bits(32)(0x00000013), instruction)
         
-        log("ID: Fetching Instruction=0x{:x} at PC=0x{:x}", instruction, pc_addr)
+        debug_log("ID: Fetching Instruction=0x{:x} at PC=0x{:x}", instruction, pc_addr)
 
         is_halt_inst = ((instruction == Bits(32)(0x00000073)) | (instruction == Bits(32)(0x00100073)) | (instruction == Bits(32)(0xFE000FA3)))
 
         with Condition(is_halt_inst == Bits(1)(1)):
-            log("ID : HALT INSTRUCTION")
+            debug_log("ID : HALT INSTRUCTION")
 
         opcode = instruction[0:6]
         rd = instruction[7:11]
@@ -97,11 +98,11 @@ class Decoder(Module):
         rs1_data = reg_file[rs1]
         rs2_data = reg_file[rs2]
 
-        log("ID: rs1=x{}, rs1_data=0x{:x}, rs2=x{}, rs2_data=0x{:x}, if_wb={}", rs1, rs1_data, rs2, rs2_data, if_wb)
+        debug_log("ID: rs1=x{}, rs1_data=0x{:x}, rs2=x{}, rs2_data=0x{:x}, if_wb={}", rs1, rs1_data, rs2, rs2_data, if_wb)
 
         rd2 = (if_wb == IF_WB.YES).select(rd, Bits(5)(0))
         
-        log("rd={}", rd2)
+        debug_log("rd={}", rd2)
 
         ctrl = DecoderSignals.bundle(
             alu_op = alu_op,
@@ -164,7 +165,7 @@ class DecoderImpl(Downstream):
             ctrl.rs2_data, fwd_from_ex_to_mem, fwd_from_mem_to_wb, fwd_after_wb
         )
 
-        log("DecoderImpl: rs_ex_type={}, rs1_data=0x{:x}, rs_2_ex_type={}, rs2_data=0x{:x}, rd={}", rs1_ex_type, rs1_data, rs2_ex_type, rs2_data, rd)
+        debug_log("DecoderImpl: rs_ex_type={}, rs1_data=0x{:x}, rs_2_ex_type={}, rs2_data=0x{:x}, rd={}", rs1_ex_type, rs1_data, rs2_ex_type, rs2_data, rd)
 
         ctrl_signals = ExCtrlSignals.bundle(
             alu_op = alu_op,

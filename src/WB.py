@@ -1,5 +1,6 @@
 from assassyn.frontend import *
 from .utils import *
+from .debug import debug_log
 
 class WriteBack(Module):
     def __init__(self):
@@ -19,10 +20,12 @@ class WriteBack(Module):
         index = ctrl.rd
         wb_bypass_value = data
         with Condition(index != Bits(5)(0)):
-            log("WB: Write x{} <= 0x{:x}", index, data)
+            debug_log("WB: Write x{} <= 0x{:x}", index, data)
             reg_file[index] = data
         with Condition(ctrl.is_halt == Bits(1)(1)):
-            log("WB: Halt signal received, finishing simulation.")
+            debug_log("Halt signal received, finishing simulation.")
+            for i in range(32):
+                log("Register x{} = 0x{:x}", Bits(5)(i), reg_file[i])
             finish()
 
         return index, wb_bypass_value

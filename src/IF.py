@@ -1,5 +1,6 @@
 from assassyn.frontend import *
 from .utils import *
+from .debug import debug_log
 
 class Fetcher(Module):
     def __init__(self):
@@ -10,7 +11,7 @@ class Fetcher(Module):
         pc_reg = RegArray(Bits(32), 1, initializer=[0])
         last_pc_reg = RegArray(Bits(32), 1, initializer=[0])
         pc_addr = pc_reg[0].bitcast(Bits(32))
-        log("Fetcher: {}", pc_reg[0])
+        debug_log("Fetcher: {}", pc_reg[0])
         return pc_reg, last_pc_reg, pc_addr
 
 class FetcherImpl(Downstream):
@@ -31,24 +32,24 @@ class FetcherImpl(Downstream):
         rubbish_val = rubbish.optional(Bits(32)(0))
 
         with Condition(valid_is_stall == Bits(1)(1)):
-            log("Stall in IF")
+            debug_log("Stall in IF")
         
         current_pc_addr = (valid_is_stall == Bits(1)(1)).select(last_pc_reg[0], pc_reg[0]).bitcast(Bits(32))
 
-        log("IF: Current PC=0x{:x}", current_pc_addr)
+        debug_log("IF: Current PC=0x{:x}", current_pc_addr)
 
         #如果EX阶段得到了跳转指令的目标位置，就需要flush        
         branch_target = branch_target_reg[0].bitcast(Bits(32))
         current_pc_addr = (branch_target != Bits(32)(0)).select(branch_target, current_pc_addr)
         with Condition(branch_target != Bits(32)(0)):
-            log("IF: Flush to 0x{:x}", branch_target)
+            debug_log("IF: Flush to 0x{:x}", branch_target)
 
         next_pc_addr = (current_pc_addr.bitcast(UInt(32)) + UInt(32)(4)).bitcast(Bits(32))
 
         pc_reg[0] <= next_pc_addr
         last_pc_reg[0] <= current_pc_addr
 
-        log(
+        debug_log(
             "IF: Next PC=0x{:x}  Current PC={:x}",
             next_pc_addr,
             current_pc_addr,

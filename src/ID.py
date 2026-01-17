@@ -164,6 +164,21 @@ class DecoderImpl(Downstream):
             ctrl.rs2_data, fwd_from_ex_to_mem, fwd_from_mem_to_wb, fwd_after_wb
         )
 
+        with Condition(rs1_ex_type == Bits(4)(0b0010)):
+            log("[Bypass Count]: Using EX-MA bypass")
+        with Condition(rs1_ex_type == Bits(4)(0b0100)):
+            log("[Bypass Count]: Using MA-WB bypass")
+        with Condition(rs1_ex_type == Bits(4)(0b1000)):
+            log("[Bypass Count]: Using WB bypass")
+
+        with Condition(rs2_ex_type == Bits(4)(0b0010)):
+            log("[Bypass Count]: Using EX-MA bypass")
+        with Condition(rs2_ex_type == Bits(4)(0b0100)):
+            log("[Bypass Count]: Using MA-WB bypass")
+        with Condition(rs2_ex_type == Bits(4)(0b1000)):
+            log("[Bypass Count]: Using WB bypass")
+
+
         log("DecoderImpl: rs_ex_type={}, rs1_data=0x{:x}, rs_2_ex_type={}, rs2_data=0x{:x}, rd={}", rs1_ex_type, rs1_data, rs2_ex_type, rs2_data, rd)
 
         ctrl_signals = ExCtrlSignals.bundle(

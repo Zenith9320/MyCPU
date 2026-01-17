@@ -1,5 +1,6 @@
 from assassyn.frontend import *
 from .utils import BranchType, ExCtrlSignals,MemOp, MemCtrlSignals, WbCtrlSignals
+from .debug import debug_log
 
 class Executor(Module):
     def __init__(self):
@@ -20,7 +21,7 @@ class Executor(Module):
         branch_target: RegArray
     ):
         ctrl, pc, rs1, rs2, imm = self.pop_all_ports(True)
-        log("Input: pc={}, rs1={}, rs2={}, imm={}", pc, rs1, rs2, imm)
+        debug_log("Input: pc={}, rs1={}, rs2={}, imm={}", pc, rs1, rs2, imm)
 
         alu_op1 = ctrl.op1_type.select1hot(
             rs1, pc, Bits(32)(0)
@@ -29,7 +30,7 @@ class Executor(Module):
             rs2, imm, Bits(32)(4)
         )
 
-        log("op1_type={}, op2_type={}, alu_op1=0x{:x}, alu_op2=0x{:x}", ctrl.op1_type, ctrl.op2_type, alu_op1, alu_op2)
+        debug_log("op1_type={}, op2_type={}, alu_op1=0x{:x}, alu_op2=0x{:x}", ctrl.op1_type, ctrl.op2_type, alu_op1, alu_op2)
 
         op1_signed = alu_op1.bitcast(Int(32))
         op2_signed = alu_op2.bitcast(Int(32))
@@ -60,7 +61,7 @@ class Executor(Module):
             alu_op2,
         )
 
-        log("ALU Result: {}", alu_res)
+        debug_log("ALU Result: {}", alu_res)
     
         # jal 和 jalr 计算跳转地址
         is_jalr = ctrl.branch_type == BranchType.JALR
@@ -144,7 +145,7 @@ class Executor(Module):
         is_store = mem_opcode == MemOp.STORE
         is_load = mem_opcode == MemOp.LOAD
 
-        log("Memory Access: is_load={}, is_store={}, mem_width={}", is_load, is_store, ctrl.mem_width)
+        debug_log("Memory Access: is_load={}, is_store={}, mem_width={}", is_load, is_store, ctrl.mem_width)
 
         mem_width = ctrl.mem_width
 

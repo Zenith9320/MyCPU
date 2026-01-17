@@ -1,4 +1,5 @@
 from assassyn.frontend import *
+from .debug import debug_log
 
 class MemoryUser(Downstream):
     def __init__(self):
@@ -55,7 +56,7 @@ class MemoryUser(Downstream):
 
         sram_trunc_addr = (final_addr >> Bits(32)(2))[0:15]
 
-        log("MemoryUser: Addr=0x{:x} WData=0x{:x} WE={} RE={}", final_addr, sram_wdata, we, re)
+        debug_log("MemoryUser: Addr=0x{:x} WData=0x{:x} WE={} RE={}", final_addr, sram_wdata, we, re)
         sram.build(
             addr = sram_trunc_addr,
             wdata = sram_wdata,

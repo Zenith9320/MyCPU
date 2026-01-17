@@ -1,5 +1,6 @@
 from assassyn.frontend import *
 from .utils import Rs1Type, Rs2Type
+from .debug import debug_log
 
 class Bypass(Downstream):
     def __init__(self):
@@ -26,7 +27,7 @@ class Bypass(Downstream):
         mem_is_store_val = mem_is_store.optional(Bits(1)(0))
         wb_dest_addr_val = wb_dest_addr.optional(Bits(5)(0))
 
-        log("Bypass: rs1={}, rs2={}, ex_dest={}, ex_is_load={}, ex_is_store={}, mem_dest={}, wb_dest={}", 
+        debug_log("Bypass: rs1={}, rs2={}, ex_dest={}, ex_is_load={}, ex_is_store={}, mem_dest={}, wb_dest={}", 
             rs1_addr_val,
             rs2_addr_val,
             ex_dest_addr_val,
@@ -53,7 +54,7 @@ class Bypass(Downstream):
         rs2_mem_type = ((rs2_addr_val == mem_dest_addr_val) & (~rs2_is_zero)).select(Rs2Type.MEM, rs2_wb_type)
         rs2_ex_type = ((rs2_addr_val == ex_dest_addr_val) & (~rs2_is_zero)).select(Rs2Type.EX, rs2_mem_type)
 
-        log("Bypass Result: rs1_type={} rs2_type={} is_stall={}",
+        debug_log("Bypass Result: rs1_type={} rs2_type={} is_stall={}",
             rs1_ex_type,
             rs2_ex_type,
             is_stall

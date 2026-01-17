@@ -1,5 +1,6 @@
 from assassyn.frontend import *
 from .utils import *
+from .debug import debug_log
 
 class MemoryAcess(Module):
     def __init__(self):
@@ -22,9 +23,9 @@ class MemoryAcess(Module):
         mem_sign = ctrl.mem_sign
 
         with Condition(mem_op == MemOp.LOAD):
-            log("Memory Access: LOAD at Address=0x{:x}, Width={}, Sign={}", alu_result, mem_width, mem_sign)
+            debug_log("Memory Access: LOAD at Address=0x{:x}, Width={}, Sign={}", alu_result, mem_width, mem_sign)
         with Condition(mem_op == MemOp.STORE):
-            log("Memory Access: STORE at Address=0x{:x}, Width={}, Sign={}", alu_result, mem_width, mem_sign)
+            debug_log("Memory Access: STORE at Address=0x{:x}, Width={}, Sign={}", alu_result, mem_width, mem_sign)
 
         raw_data = sram_dout[0].bitcast(Bits(32))
 
